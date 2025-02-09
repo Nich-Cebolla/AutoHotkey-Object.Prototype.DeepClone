@@ -9,7 +9,7 @@ If the original object is (or inherits from) Array or Map, any contained items a
 `DeepClone` has one (included) dependency, function `GetObjectFromString`. `GetObjectFromString` takes a string input and returns a reference to the object. This is necessary to handle classes that have "." in the name, as `%'ParentClass.ChildClass'%` does not work.
 
 ## AHK forum post
-https://github.com/Nich-Cebolla/AutoHotkey-Object.Prototype.DeepClone
+[https://github.com/Nich-Cebolla/AutoHotkey-Object.Prototype.DeepClone](https://www.autohotkey.com/boards/viewtopic.php?f=83&t=135780)
 
 ## Parameters
 - @param {Object} Self - The object to be deep cloned. If calling this from an instance, exclude this parameter.
