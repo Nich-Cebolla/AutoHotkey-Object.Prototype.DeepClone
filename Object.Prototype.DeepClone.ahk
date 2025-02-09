@@ -79,7 +79,7 @@ OBJECT_DEEPCLONE(Self, Depth := -1) {
                 if Flag
                     break
             }
-            Target.Length := n
+            Target.Length := n - 1
         } else if Target is Map {
             for Key, Val in Subject {
                 if Type(Val) == 'ComValue' || Type(Val) == 'ComObject' {
