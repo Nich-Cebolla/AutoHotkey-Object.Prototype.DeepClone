@@ -16,6 +16,7 @@ If the original object is (or inherits from) Array or Map, any contained items a
 - @param {Integer} [Depth=-1]  - The maximum depth to clone. A value of -1 indicates no limit.
 
 ## Limitations
+**Note** - This limitation is addressed by `DeepCloneA`. If you need to deep clone an object that fails to have its type set correctly by `DeepClone`, you can overcome this limitation by using `DeepCloneA` and providing a set of default parameters to pass to the object's constructor.
 Though any object may be deep cloned, the function may fail to set the correct type in some situations. `DeepClone` sets the object type by following this sequence of actions:
 - `DeepClone` attempts to create an instance of the object's class. For objects which are class objects, `DeepClone` creates an instance of `Class`.
 - If this fails (for example, if the constructor requires input parameters), `DeepClone` checks if the object inherits from `Map` or `Array`, and creates a new object from the respective class. If the object does not inherit from `Map` or `Array`, then an instance of `Object` is created.
@@ -26,8 +27,17 @@ Though any object may be deep cloned, the function may fail to set the correct t
 ### Object.Prototype.DeepClone.ahk
 Contains the code for the DeepClone method.
 
-### DeepCone-test.ahk
+### Object.Prototype.DeepCloneA.ahk
+Performs the same function as `DeepClone`, but addresses the problem described in "Limitations". Also requires an additional parameter.
+- @param {Map} ConstructorParams - A map of constructor parameters, where the key is the class name (use `Type(ObjToBeCloned)` as the key), and the value is an array of values that will be passed to the constructor.
+
+### GetObjectFromString.ahk
+
+### DeepClone-test.ahk
 A test case that demonstrates the functionality of `DeepClone`.
+
+### DeepCloneA-test.ahk
+A test case that demonstrates the functionality of `DeepCloneA`.
 
 ## Changelog
 <span style="font-size:18;">2025-02-08
