@@ -32,6 +32,9 @@ class TestObject {
     }
 }
 
+; To demonstrate it successfully handles circular references.
+TestObject.A_Object.B1_Obj.C1_Obj.Example := TestObject.A_Object
+
 new := TestObject.DeepClone()
 
 ; To demonstrate that the new object is, indeed, new.
@@ -42,6 +45,8 @@ _RecurseDelete(Obj) {
         list.Push(Prop)
     }
     for Prop in list {
+        if Prop == 'Example'
+            continue
         Desc := Obj.GetOwnPropDesc(Prop)
         if Desc.HasOwnProp('Value') && IsObject(Desc.Value) {
             _RecurseDelete(Desc.Value)
