@@ -35,7 +35,19 @@ class TestObject {
 new := TestObject.DeepClone()
 
 ; To demonstrate that the new object is, indeed, new.
-for Prop in TestObject.OwnProps()
-    TestObject.DeleteProp(Prop)
+_RecurseDelete(TestObject)
+_RecurseDelete(Obj) {
+    list := []
+    for Prop in Obj.OwnProps() {
+        list.Push(Prop)
+    }
+    for Prop in list {
+        Desc := Obj.GetOwnPropDesc(Prop)
+        if Desc.HasOwnProp('Value') && IsObject(Desc.Value) {
+            _RecurseDelete(Desc.Value)
+        }
+        Obj.DeleteProp(Prop)
+    }
+}
 
 sleep 1
