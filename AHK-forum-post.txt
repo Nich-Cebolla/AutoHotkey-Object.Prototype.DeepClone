@@ -1,5 +1,6 @@
 [color=#800000][size=150]Description[/size][/color]
 [color=#000000][size=125]Deep clones an object, with an option to specify a maximum depth.
+
 This function works by first identifying the base type. For most types, including custom types, DeepClone will produce an object that is the same type as the original, and will have the same methods and properties available as the original. See "Limitations" for situations when this may not be possible.
 
 After identifying the base type and constructing the new object, the original object's properties are iterated, recursively deep cloning any nested objects. For dynamic properties, the [c]GetOwnPropDesc[/c] function is called, and the result is assigned directly to the new object's property. See [url]https://www.autohotkey.com/docs/v2/lib/Object.htm#GetOwnPropDesc[/url] for more information.
@@ -239,6 +240,9 @@ class TestObject {
     }
 }
 
+; To demonstrate it successfully handles circular references.
+TestObject.A_Object.B1_Obj.C1_Obj.Example := TestObject.A_Object
+
 new := TestObject.DeepClone()
 
 ; To demonstrate that the new object is, indeed, new.
@@ -249,6 +253,8 @@ _RecurseDelete(Obj) {
         list.Push(Prop)
     }
     for Prop in list {
+        if Prop == 'Example'
+            continue
         Desc := Obj.GetOwnPropDesc(Prop)
         if Desc.HasOwnProp('Value') && IsObject(Desc.Value) {
             _RecurseDelete(Desc.Value)
