@@ -1,4 +1,9 @@
 
+/*
+    Dependency
+        GetObjectFromString.ahk
+*/
+
 Object.Prototype.DefineProp('DeepCloneA', { Call: OBJECT_DEEPCLONEA })
 /**
  * @description - Performs a deep clone, with an optional maximum depth. This version was created
