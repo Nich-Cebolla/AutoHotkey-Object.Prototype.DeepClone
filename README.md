@@ -43,3 +43,4 @@ A test case that demonstrates the functionality of `DeepCloneA`.
 ## Changelog
 <span style="font-size:18;">2025-02-08
 - Uploaded library
+- - A bit later, wrote DeepCloneA and added it. Also separated GetObjectFromString into its own file.
