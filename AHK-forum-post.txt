@@ -1,28 +1,31 @@
-[color=#000000][size=150]Description[/size][/color]
-[color=#800000][size=125]Deep clones an object, with an option to specify a maximum depth.
+[color=#800000][size=150]Description[/size][/color]
+[color=#000000][size=125]Deep clones an object, with an option to specify a maximum depth.
 This function works by first identifying the base type. For most types, including custom types, DeepClone will produce an object that is the same type as the original, and will have the same methods and properties available as the original. See "Limitations" for situations when this may not be possible.
+
 After identifying the base type and constructing the new object, the original object's properties are iterated, recursively deep cloning any nested objects. For dynamic properties, the [c]GetOwnPropDesc[/c] function is called, and the result is assigned directly to the new object's property. See [url]https://www.autohotkey.com/docs/v2/lib/Object.htm#GetOwnPropDesc[/url] for more information.
+
 If the original object is (or inherits from) Array or Map, any contained items are copied as well, recursively deep cloning any values which are objects.
+
 [c]DeepClone[/c] gracefully handles duplicate objects by keeping track of the Ptr addresses of each cloned object. When [c]DeepClone[/c] encounters an object that has been deep cloned already, [c]DeepClone[/c] correctly assigns a reference to the copy of said object, instead of deep cloning the object again.
 [/size][/color]
 
-[color=#000000][size=150]Additional Features[/size][/color]
-[color=#800000][size=125][c]DeepClone[/c] has one (included) dependency, function [c]GetObjectFromString[/c]. [c]GetObjectFromString[/c] takes a string input and returns a reference to the object. This is necessary to handle classes that have "." in the name, as [c]%'ParentClass.ChildClass'%[/c] does not work.[/size][/color]
+[color=#800000][size=150]Additional Features[/size][/color]
+[color=#000000][size=125][c]DeepClone[/c] has one (included) dependency, function [c]GetObjectFromString[/c]. [c]GetObjectFromString[/c] takes a string input and returns a reference to the object. This is necessary to handle classes that have "." in the name, as [c]%'ParentClass.ChildClass'%[/c] does not work.[/size][/color]
 
-[color=#000000][size=150]Github link[/size][/color]
-[color=#800000][size=125][url]https://github.com/Nich-Cebolla/AutoHotkey-Object.Prototype.DeepClone[/url][/color]
+[color=#800000][size=150]Github link[/size][/color]
+[color=#000000][size=125][url]https://github.com/Nich-Cebolla/AutoHotkey-Object.Prototype.DeepClone[/url][/color]
 
 [color=#800000][size=150]Parameters[/size][/color]
-- @param {Object} [size=115][color=#8000BF]Self[/color][/size] - The object to be deep cloned. If calling this from an instance, exclude this parameter.
-- @param {Integer} [size=115][color=#8000BF][Depth=-1][/color][/size]  - The maximum depth to clone. A value of -1 indicates no limit.
+- [size=115]@param {Object} [color=#8000BF]Self[/color] - The object to be deep cloned. If calling this from an instance, exclude this parameter.[/size]
+- [size=115]@param {Integer} [color=#8000BF][Depth=-1][/color]  - The maximum depth to clone. A value of -1 indicates no limit.[/size]
 
-[color=#800000][size=125]Limitations[/size][/color]
-[color=#800000][size=125]Though any object may be deep cloned, the function may fail to set the correct type in some situations. [c]DeepClone[/c] sets the object type by following this sequence of actions:
+[color=#800000][size=150]Limitations[/size][/color]
+[color=#000000][size=125]Though any object may be deep cloned, the function may fail to set the correct type in some situations. [c]DeepClone[/c] sets the object type by following this sequence of actions:
 - [c]DeepClone[/c] attempts to create an instance of the object's class. For objects which are class objects, [c]DeepClone[/c] creates an instance of [c]Class[/c].
 - If this fails (for example, if the constructor requires input parameters), [c]DeepClone[/c] checks if the object inherits from [c]Map[/c] or [c]Array[/c], and creates a new object from the respective class. If the object does not inherit from [c]Map[/c] or [c]Array[/c], then an instance of [c]Object[/c] is created.
 - The new object's base is re-assigned to be the same as the original's base. This is where failure will occur for some types, because AutoHotkey prevents assigning a base type in situations where the object and the target base object are fundamentally different. If this occurs, [c]DeepClone[/c] continues to deep clone the object, but the new object remains an instance of [c]Object[/c]. The primary consequence of this is that some methods which get added to the new object would be invalid, and any properties that refer to something inherent to the original base type would be meaningless in relation to the new object.[/size][/color]
 
-[color=#000000][size=150]Object.Prototype.DeepClone.ahk[/size][/color]
+[color=#800000][size=150]Object.Prototype.DeepClone.ahk[/size][/color]
 
 [code]
 
@@ -106,7 +109,7 @@ OBJECT_DEEPCLONE(Self, Depth := -1) {
                 if Flag
                     break
             }
-            Target.Length := n
+            Target.Length := n - 1
         } else if Target is Map {
             for Key, Val in Subject {
                 if Type(Val) == 'ComValue' || Type(Val) == 'ComObject' {
@@ -199,7 +202,7 @@ GetObjectFromString(Path) {
 
 [/code]
 
-[color=#000000][size=150]DeepCone-test.ahk[/size][/color]
+[color=#800000][size=150]DeepCone-test.ahk[/size][/color]
 
 [code]
 
@@ -214,17 +217,17 @@ class TestObject {
         }
     }
     
-    static A_Object => {
+    static A_Object := {
         B1_Obj: {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
       , B2_Map: Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
       , B3_Array: [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
     }
-    static A_Map => Map(
+    static A_Map := Map(
         'B1_Obj', {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
       , 'B2_Map', Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
       , 'B3_Array', [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
     )
-    static A_Array => [
+    static A_Array := [
         {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
       , Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
       , [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
@@ -247,6 +250,6 @@ sleep 1
 [/code]
 
 
-[color=#000000][size=150]Changelog[/size][/color]
-[color=#800000][size=120]<Date>[/size][/color]
+[color=#800000][size=150]Changelog[/size][/color]
+[color=#000000][size=120]2025-02-08[/size][/color]
 - Uploaded library
