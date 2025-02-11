@@ -59,7 +59,7 @@ OBJECT_DEEPCLONE(Self, Depth := -1) {
             loop {
                 Target.Length += 1000
                 loop 1000 {
-                    if !Subject.Has(++n) {
+                    if ++n > Subject.Length {
                         Flag := 1
                         break
                     }
