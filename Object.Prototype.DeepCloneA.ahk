@@ -43,6 +43,8 @@ OBJECT_DEEPCLONEA(Self, ConstructorParams, Depth := -1) {
                 loop 1000 {
                     if ++n > Subject.Length
                         break 2
+                    if Subject.Has(n)
+                        Target[n] := _ProcessValue(Subject[n])
                     Target[n] := _ProcessValue(Subject[n])
                 }
             }
