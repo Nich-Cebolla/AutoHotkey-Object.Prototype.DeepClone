@@ -1,5 +1,6 @@
 
 #Include Object.Prototype.DeepClone.ahk
+#Include GetObjectFromString.ahk
 /*
     I just load this in a debugger and put a breakpoint on "sleep 1" to inspect it.
 */
