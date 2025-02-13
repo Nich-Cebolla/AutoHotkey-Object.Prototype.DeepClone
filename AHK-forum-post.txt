@@ -66,7 +66,8 @@ OBJECT_DEEPCLONE(Self, Depth := -1) {
                 loop 1000 {
                     if ++n > Subject.Length
                         break 2
-                    Target[n] := _ProcessValue(Subject[n])
+                    if Subject.Has(n)
+                        Target[n] := _ProcessValue(Subject[n])
                 }
             }
             Target.Length := n - 1
@@ -173,6 +174,8 @@ OBJECT_DEEPCLONEA(Self, ConstructorParams, Depth := -1) {
                 loop 1000 {
                     if ++n > Subject.Length
                         break 2
+                    if Subject.Has(n)
+                        Target[n] := _ProcessValue(Subject[n])
                     Target[n] := _ProcessValue(Subject[n])
                 }
             }
@@ -410,6 +413,9 @@ sleep 1
 
 [color=#800000][size=165]Changelog[/size][/color]
 [color=#000000][size=120][b]2025-02-13[/b][/size][/color]
+[list][*][color=#000000][size=125]Added [c]if Subject.Has(n)[/c] conditional to Array block.[/size][/color][/list]
+
+[color=#000000][size=120][b]2025-02-13[/b][/size][/color]
 [list][*][color=#000000][size=125]Refactored the function loop.[/size][/color]
 [*][color=#000000][size=125]Removed long comment about __Enum.[/size][/color]
 [*][color=#000000][size=125]Clarified DeepCloneA description.[/size][/color]
@@ -422,3 +428,4 @@ sleep 1
 [color=#000000][size=120][b]2025-02-08[/b][/size][/color]
 [list][*][color=#000000][size=125]Uploaded library[/size][/color]
 [*][color=#000000][size=125]A bit later, wrote DeepCloneA and added it. Also separated [c]GetObjectFromString[/c] into its own file.[/size][/color][/list]
+
