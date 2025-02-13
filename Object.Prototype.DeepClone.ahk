@@ -35,7 +35,8 @@ OBJECT_DEEPCLONE(Self, Depth := -1) {
                 loop 1000 {
                     if ++n > Subject.Length
                         break 2
-                    Target[n] := _ProcessValue(Subject[n])
+                    if Subject.Has(n)
+                        Target[n] := _ProcessValue(Subject[n])
                 }
             }
             Target.Length := n - 1
