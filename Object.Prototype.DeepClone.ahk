@@ -15,108 +15,44 @@ Object.Prototype.DefineProp('DeepClone', { Call: OBJECT_DEEPCLONE })
 OBJECT_DEEPCLONE(Self, Depth := -1) {
     PtrList := Map(ObjPtr(Self), Result := _GetTarget(Self))
     CurrentDepth := 1
-    return _Recurse(Result, Self, PtrList, &CurrentDepth)
+    return _Recurse(Result, Self)
 
-    _Recurse(Target, Subject, PtrList, &CurrentDepth) {
+    _Recurse(Target, Subject) {
         CurrentDepth++
         for Prop in Subject.OwnProps() {
-            if Prop == 'Example'
-                sleep 1
             if Prop  == 'Base'
                 continue
             Desc := Subject.GetOwnPropDesc(Prop)
-            if Desc.HasOwnProp('Value') {
-                if Type(Desc.Value) == 'ComValue' || Type(Desc.Value) == 'ComObject' {
-                    Target.DefineProp(Prop, { Value: Desc.Value })
-                    continue
-                }
-                if IsObject(Desc.Value) {
-                    if PtrList.Has(ObjPtr(Desc.Value)) {
-                        Target.DefineProp(Prop, { Value: PtrList[ObjPtr(Desc.Value)] })
-                        continue
-                    }
-                    if Depth == -1 || CurrentDepth < Depth {
-                        PtrList.Set(ObjPtr(Desc.Value), _Target := _GetTarget(Desc.Value))
-                        Target.DefineProp(Prop, { Value: _Recurse(_Target, Desc.Value, PtrList, &CurrentDepth) })
-                    } else {
-                        Target.DefineProp(Prop, { Value: Desc.Value })
-                    }
-                } else {
-                    Target.DefineProp(Prop, { Value: Desc.Value })
-                }
-            } else {
+            if Desc.HasOwnProp('Value')
+                Target.DefineProp(Prop, { Value: _ProcessValue(Desc.Value) })
+            else
                 Target.DefineProp(Prop, Desc)
-            }
         }
-        ; If Subject is a custom class that has implemented an __Enum method, then the items are
-        ; stored somewhere on a property anyway, and so repeating __Enum is likely not necessary.
-        ; If the items are produced as a result of a calculation, then we do not need to capture
-        ; those; __Enum can be called on the resulting cloned object to get them. Classes based on
-        ; Array and Map are the exception, as they themselves are the containers of the items, and
-        ; so there is no property from which to retrieve the items; we have to all __Enum to get them.
         if Target is Array {
-            n := Flag := 0
+            n := 0
             loop {
                 Target.Length += 1000
                 loop 1000 {
-                    if ++n > Subject.Length {
-                        Flag := 1
-                        break
-                    }
-                    Val := Subject[n]
-                    if Type(Val) == 'ComValue' || Type(Val) == 'ComObject' {
-                        Target[n] := Val
-                        continue
-                    }
-                    if IsObject(Val) {
-                        if PtrList.Has(ObjPtr(Val)) {
-                            Target[n] := PtrList[ObjPtr(Val)]
-                            continue
-                        }
-                        if Depth == -1 || CurrentDepth < Depth {
-                            PtrList.Set(ObjPtr(Val), _Target := _GetTarget(Val))
-                            Target[n] :=  _Recurse(_Target, Val, PtrList, &CurrentDepth)
-                        } else {
-                            Target[n] := Val
-                        }
-                    } else {
-                        Target[n] := Val
-                    }
+                    if ++n > Subject.Length
+                        break 2
+                    Target[n] := _ProcessValue(Subject[n])
                 }
-                if Flag
-                    break
             }
             Target.Length := n - 1
+            Target.Capacity := Subject.Capacity
         } else if Target is Map {
-            for Key, Val in Subject {
-                if Type(Val) == 'ComValue' || Type(Val) == 'ComObject' {
-                    Target[Key] := Val
-                    continue
-                }
-                if IsObject(Val) {
-                    if PtrList.Has(ObjPtr(Val)) {
-                        Target[Key] := PtrList[ObjPtr(Val)]
-                        continue
-                    }
-                    if Depth == -1 || CurrentDepth < Depth {
-                        PtrList.Set(ObjPtr(Val), _Target := _GetTarget(Val))
-                        Target[Key] :=  _Recurse(_Target, Val, PtrList, &CurrentDepth)
-                    } else {
-                        Target[Key] := Val
-                    }
-                } else {
-                    Target[Key] := Val
-                }
-            }
+            for Key, Val in Subject
+                    Target[Key] := _ProcessValue(Val)
+            Target.Capacity := Subject.Capacity
         }
         CurrentDepth--
         return Target
     }
 
     _GetTarget(Subject) {
-        if Type(Subject) == 'Prototype' {
+        if Type(Subject) == 'Prototype'
             Target := _GetTargetHelper(Subject.__Class)
-        } else {
+        else {
             obj := Subject.Base
             while !obj.HasOwnProp('__Class') {
                 obj := obj.Base
@@ -133,14 +69,27 @@ OBJECT_DEEPCLONE(Self, Depth := -1) {
             try
                 return GetObjectFromString(ClassString)()
             catch {
-                if Subject Is Map {
+                if Subject Is Map
                     return Map()
-                } else if Subject is Array {
+                else if Subject is Array
                     return Array()
-                } else {
+                else
                     return Object()
-                }
             }
         }
+    }
+    _ProcessValue(Val) {
+        if Type(Val) == 'ComValue' || Type(Val) == 'ComObject'
+            return Val
+        if IsObject(Val) {
+            if PtrList.Has(ObjPtr(Val))
+                return PtrList[ObjPtr(Val)]
+            if Depth == -1 || CurrentDepth < Depth {
+                PtrList.Set(ObjPtr(Val), _Target := _GetTarget(Val))
+                return _Recurse(_Target, Val)
+            } else
+                return Val
+        } else
+            return Val
     }
 }
