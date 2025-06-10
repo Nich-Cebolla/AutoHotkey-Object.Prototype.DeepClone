@@ -1,6 +1,5 @@
 
-#Include Object.Prototype.DeepCloneA.ahk
-#Include GetObjectFromString.ahk
+#Include ObjDeepClone.ahk
 /*
     I just load this in a debugger and put a breakpoint on "sleep 1" to inspect it.
 */
@@ -22,7 +21,7 @@ class TestObject {
             case 1: return TestObject.A_Object
         }
     }
-    
+
     A_Object := {
         B1_Obj: {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
       , B2_Map: Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
@@ -52,7 +51,7 @@ instance.A_Object.B1_Obj.C1_Obj.Example := instance.A_Object
 
 ConstructorParams := Map(Type(instance), [5, 6, , 8])
 
-new := instance.DeepCloneA(ConstructorParams)
+new := instance.DeepClone(, ConstructorParams)
 
 ; To demonstrate that the new object is, indeed, new.
 _RecurseDelete(instance)

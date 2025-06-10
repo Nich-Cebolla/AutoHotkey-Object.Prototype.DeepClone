@@ -1,431 +1,199 @@
 [color=#800000][size=165][b]Description[/b][/size][/color]
-[color=#000000][size=125]Deep clones an object, with an option to specify a maximum depth.[/size][/color]
+Recursively copies an object's properties onto a new object. For all new objects, [c]ObjDeepClone[/c] attempts to set the new object's base to the same base as the subject. See "Limitations" for situations when this may not be possible. For objects that inherit from [c]Map[/c] or [c]Array[/c], clones the items in addition to the properties.
 
-[color=#000000][size=125]This function works by first identifying the base type. For most types, including custom types, DeepClone will produce an object that is the same type as the original, and will have the same methods and properties available as the original. See "Limitations" for situations when this may not be possible.[/size][/color]
-
-[color=#000000][size=125]After identifying the base type and constructing the new object, the original object's properties are iterated, recursively deep cloning any nested objects. For dynamic properties, the [c]GetOwnPropDesc[/c] function is called, and the result is assigned directly to the new object's property. See [url]https://www.autohotkey.com/docs/v2/lib/Object.htm#GetOwnPropDesc[/url] for more information.[/size][/color]
-
-[color=#000000][size=125]If the original object is (or inherits from) Array or Map, any contained items are copied as well, recursively deep cloning any values which are objects.[/size][/color]
-
-[color=#000000][size=125][c]DeepClone[/c] gracefully handles duplicate objects by keeping track of the Ptr addresses of each cloned object. When [c]DeepClone[/c] encounters an object that has been deep cloned already, [c]DeepClone[/c] correctly assigns a reference to the copy of said object, instead of deep cloning the object again.[/size][/color]
-
-[color=#800000][size=165][b]Additional Features[/b][/size][/color]
-[color=#000000][size=125][c]DeepClone[/c] has one (included) dependency, function [c]GetObjectFromString[/c]. [c]GetObjectFromString[/c] takes a string input and returns a reference to the object. This is necessary to handle classes that have "." in the name, as [c]%'ParentClass.ChildClass'%[/c] does not work.[/size][/color]
+When [c]ObjDeepClone[/c] encounters an object that has been processed already, [c]ObjDeepClone[/c] assigns a reference to the copy of said object, instead of processing the object again.
 
 [color=#800000][size=165][b]Github link[/b][/size][/color]
-[size=125]https://github.com/Nich-Cebolla/AutoHotkey-Object.Prototype.DeepClone[/size]
+https://github.com/Nich-Cebolla/AutoHotkey-Object.Prototype.DeepClone
 
 [color=#800000][size=165][b]Parameters[/b][/size][/color]
-[list][*][size=112][color=#008000][b]{Object}[/color] Self[/b] - The object to be deep cloned. If calling this from an instance, exclude this parameter.[/size]
-[*][size=112][color=#008000][b]{Integer}[/color] [Depth=-1][/b] - The maximum depth to clone. A value of -1 indicates no limit.[/size][/list]
+[list][*][color=#008000][b]{*}[/color] Self[/b] - The object to be deep cloned. If calling this method from an instance, exclude this parameter.
+- {Map} [ConstructorParams] - A map of constructor parameters, where the key is the class name (use [c]ObjToBeCloned.__Class[/c] as the key), and the value is an array of values that will be passed to the constructor. Using [c]ConstructorParams[/c] can allow [c]ObjDeepClone[/c] to create correctly-typed objects in cases where normally AHK will not allow setting the type using [c]ObjSetBase()[/c].
+[*][color=#008000][b]{Integer}[/color] [ConstructorParams][/b] - A map of constructor parameters, where the key is the class name (use [c]ObjToBeCloned.__Class[/c] as the key), and the value is an array of values that will be passed to the constructor. Using [c]ConstructorParams[/c] can allow [c]ObjDeepClone[/c] to create correctly-typed objects in cases where normally AHK will not allow setting the type using [c]ObjSetBase()[/c].
+[*][color=#008000][b]{Integer}[/color] [Depth = -1][/b] - The maximum depth to clone. A value equal to or less than 0 will result in no limit.[/list]
 
 [color=#800000][size=165][b]Limitations[/b][/size][/color]
-[color=#000000][size=125][b]Note[/b]- This limitation is addressed by [c]DeepCloneA[/c]. If you need to deep clone an object that fails to have its type set correctly by [c]DeepClone[/c], you can overcome this limitation by using [c]DeepCloneA[/c] and providing a set of default parameters to pass to the object's constructor. Multiple constructors can be prepared within the map object, allowing you to address any number of types within a single function call.[/size][/color]
+[list][*][c]ObjDeepClone[/c] may fail to set the correct type in some situations. This limitation can sometimes be avoided by using the parameter [c]ConstructorParams[/c]. [c]ObjDeepClone[/c] sets the object type by following this sequence of actions:
+[list][*][c]ObjDeepClone[/c] attempts to create an instance of the object's class.
+[*]If this fails (for example, if the constructor requires input parameters), [c]ObjDeepClone[/c] checks if the object inherits from [c]Map[/c] or [c]Array[/c], and creates a new object from the respective class. If the object does not inherit from [c]Map[/c] or [c]Array[/c], then an instance of [c]Object[/c] is created.
+[*]The new object's base is re-assigned to be the same as the original's base. This is where failure will occur for some types, because AutoHotkey prevents assigning a base type in situations where the object and the target base object are fundamentally different. If this occurs, [c]ObjDeepClone[/c] continues to deep clone the object, but the new object remains an instance of [c]Object[/c].[/list]
+[*]For each of [c]Menu[/c], [c]MenuBar[/c], [c]Gui[/c], [c]Gui.Control[/c] and its derivatives, [c]Func[/c] and its derivatives, [c]ComValue[/c] and its derivatives, [c]Primitive[/c] and its derivatives [*]These cannot be effectively cloned using [c]ObjDeepClone[/c].
+[*][c]RegExMatchInfo[/c] objects will not have their subcapture groups copied to the new object.
+[*]Attempting to clone a [c]File[/c] object may produce unexpected results.
+[*][c]ComValue[/c] objects are ignored by [c]ObjDeepClone[/c]. References to the original object
+are set on the new object instead of attempting to clone them.
+[*][c]ObjDeepClone[/c] has not been tested using an instance of [c]InputHook[/c].[/list]
 
-[color=#000000][size=125]Though any object may be deep cloned, the function may fail to set the correct type in some situations. [c]DeepClone[/c] sets the object type by following this sequence of actions:[/size][/color]
-[list][*][color=#000000][size=125][c]DeepClone[/c] attempts to create an instance of the object's class. For objects which are class objects, [c]DeepClone[/c] creates an instance of [c]Class[/c].[/size][/color]
-[*][color=#000000][size=125]If this fails (for example, if the constructor requires input parameters), [c]DeepClone[/c] checks if the object inherits from [c]Map[/c] or [c]Array[/c], and creates a new object from the respective class. If the object does not inherit from [c]Map[/c] or [c]Array[/c], then an instance of [c]Object[/c] is created.[/size][/color]
-[*][color=#000000][size=125]The new object's base is re-assigned to be the same as the original's base. This is where failure will occur for some types, because AutoHotkey prevents assigning a base type in situations where the object and the target base object are fundamentally different. If this occurs, [c]DeepClone[/c] continues to deep clone the object, but the new object remains an instance of [c]Object[/c]. The primary consequence of this is that some methods which get added to the new object would be invalid, and any properties that refer to something inherent to the original base type would be meaningless in relation to the new object.[/size][/color][/list]
-
-[color=#800000][size=165][b]Contents[/b][/size][/color]
-[color=#000000][size=135][b]Object.Prototype.DeepClone.ahk[/b][/size][/color]
-[color=#000000][size=125]Contains the code for the [c]DeepClone[/c] method.[/size][/color]
+[size=135][b]ObjDeepClone[/b][/size]
 [code]
 
-/*
-    Dependency
-        GetObjectFromString.ahk
-*/
-Object.Prototype.DefineProp('DeepClone', { Call: OBJECT_DEEPCLONE })
+Object.Prototype.DefineProp('DeepClone', { Call: ObjDeepClone })
 /**
- * @description - Performs a deep clone, with an optional maximum depth.
- * @param {Object} Self - The object to be deep cloned. If calling this method from an instance,
+ * @description - Recursively copies an object's properties onto a new object. For all new objects,
+ * `ObjDeepClone` attempts to set the new object's base to the same base as the subject. For objects
+ * that inherit from `Map` or `Array`, clones the items in addition to the properties.
+ * @param {*} Self - The object to be deep cloned. If calling this method from an instance,
  * exclude this parameter.
- * @param {Integer} [Depth=-1] - The maximum depth to clone. A value of -1 indicates no limit.
- * @returns {Object} - The deep cloned object.
+ * @param {Map} [ConstructorParams] - A map of constructor parameters, where the key is the class
+ * name (use `ObjToBeCloned.__Class` as the key), and the value is an array of values that will be
+ * passed to the constructor. Using `ConstructorParams` can allow `ObjDeepClone` to create correctly-
+ * typed objects in cases where normally AHK will not allow setting the type using `ObjSetBase()`.
+ * @param {Integer} [Depth = 0] - The maximum depth to clone. A value equal to or less than 0 will
+ * result in no limit.
+ * @returns {*}
  */
-OBJECT_DEEPCLONE(Self, Depth := -1) {
-    PtrList := Map(ObjPtr(Self), Result := _GetTarget(Self))
+ObjDeepClone(Self, ConstructorParams?, Depth := 0) {
+    GetTarget := IsSet(ConstructorParams) ? _GetTarget2 : _GetTarget1
+    PtrList := Map(ObjPtr(Self), Result := GetTarget(Self))
     CurrentDepth := 1
     return _Recurse(Result, Self)
+
     _Recurse(Target, Subject) {
         CurrentDepth++
         for Prop in Subject.OwnProps() {
-            if Prop  == 'Base'
-                continue
             Desc := Subject.GetOwnPropDesc(Prop)
-            if Desc.HasOwnProp('Value')
-                Target.DefineProp(Prop, { Value: _ProcessValue(Desc.Value) })
-            else
-                Target.DefineProp(Prop, Desc)
-        }
-        if Target is Array {
-            n := 0
-            loop {
-                Target.Length += 1000
-                loop 1000 {
-                    if ++n > Subject.Length
-                        break 2
-                    if Subject.Has(n)
-                        Target[n] := _ProcessValue(Subject[n])
-                }
-            }
-            Target.Length := n - 1
-            Target.Capacity := Subject.Capacity
-        } else if Target is Map {
-            for Key, Val in Subject
-                    Target[Key] := _ProcessValue(Val)
-            Target.Capacity := Subject.Capacity
-        }
-        CurrentDepth--
-        return Target
-    }
-    _GetTarget(Subject) {
-        if Type(Subject) == 'Prototype'
-            Target := _GetTargetHelper(Subject.__Class)
-        else {
-            obj := Subject.Base
-            while !obj.HasOwnProp('__Class') {
-                obj := obj.Base
-                if A_Index >= 15 ; Arbitrary limit to prevent infininite loop.
-                    throw Error('Failed to identify subject base type.', -1)
-            }
-            Target := _GetTargetHelper(obj.__Class)
-        }
-        try
-            ObjSetBase(Target, Subject.Base)
-        return Target
-        _GetTargetHelper(ClassString) {
-            try
-                return GetObjectFromString(ClassString)()
-            catch {
-                if Subject Is Map
-                    return Map()
-                else if Subject is Array
-                    return Array()
-                else
-                    return Object()
-            }
-        }
-    }
-    _ProcessValue(Val) {
-        if Type(Val) == 'ComValue' || Type(Val) == 'ComObject'
-            return Val
-        if IsObject(Val) {
-            if PtrList.Has(ObjPtr(Val))
-                return PtrList[ObjPtr(Val)]
-            if Depth == -1 || CurrentDepth < Depth {
-                PtrList.Set(ObjPtr(Val), _Target := _GetTarget(Val))
-                return _Recurse(_Target, Val)
-            } else
-                return Val
-        } else
-            return Val
-    }
-}
-
-[/code]
-
-[color=#000000][size=135][b]Object.Prototype.DeepCloneA.ahk[/b][/size][/color]
-[color=#000000][size=125]Performs the same function as [c]DeepClone[/c], but addresses the problem described in "Limitations". Also requires an additional parameter.[/size][/color]
-[list][*][size=112][color=#008000][b]{Map}[/color] ConstructorParams[/b] - A map of constructor parameters, where the key is the class name (use [c]Type(ObjToBeCloned)[/c] as the key), and the value is an array of values that will be passed to the constructor.[/size][/list]
-
-[code]
-
-/*
-    Dependency
-        GetObjectFromString.ahk
-*/
-Object.Prototype.DefineProp('DeepCloneA', { Call: OBJECT_DEEPCLONEA })
-/**
- * @description - Performs a deep clone, with an optional maximum depth. This version was created
- * to broaden the range of types that DeepClone can handle. Since ObjSetBase cannot set an object's
- * base to a type that is fundamentally different from the object's own base, the original DeepClone
- * can sometimes fail to set the correct type. This version allows you to define one or more sets
- * of parameters that will be passed to the associated class constructor any time an object of that
- * type is processed.
- * @param {Object} Self - The object to be deep cloned. If calling this method from an instance,
- * exclude this parameter.
- * @param {Map} ConstructorParams - A map of constructor parameters, where the key is the class
- * name (use `Type(ObjToBeCloned)` as the key), and the value is an array of values that will be
- * passed to the constructor. Any number of key-value pairs can be present in the object.
- * @param {Integer} [Depth=-1] - The maximum depth to clone. A value of -1 indicates no limit.
- * @returns {Object} - The deep cloned object.
- */
-OBJECT_DEEPCLONEA(Self, ConstructorParams, Depth := -1) {
-    PtrList := Map(ObjPtr(Self), Result := _GetTarget(Self))
-    CurrentDepth := 1
-    return _Recurse(Result, Self)
-    _Recurse(Target, Subject) {
-        CurrentDepth++
-        for Prop in Subject.OwnProps() {
-            if Prop  == 'Base'
-                continue
-            Desc := Subject.GetOwnPropDesc(Prop)
-            if Desc.HasOwnProp('Value')
-                Target.DefineProp(Prop, { Value: _ProcessValue(Desc.Value) })
-            else
-                Target.DefineProp(Prop, Desc)
-        }
-        if Target is Array {
-            n := 0
-            loop {
-                Target.Length += 1000
-                loop 1000 {
-                    if ++n > Subject.Length
-                        break 2
-                    if Subject.Has(n)
-                        Target[n] := _ProcessValue(Subject[n])
-                    Target[n] := _ProcessValue(Subject[n])
-                }
-            }
-            Target.Length := n - 1
-            Target.Capacity := Subject.Capacity
-        } else if Target is Map {
-            for Key, Val in Subject
-                    Target[Key] := _ProcessValue(Val)
-            Target.Capacity := Subject.Capacity
-        }
-        CurrentDepth--
-        return Target
-    }
-    _GetTarget(Subject) {
-        if ConstructorParams.Has(Type(Subject)) {
-            Target := GetObjectFromString(Type(Subject))(ConstructorParams.Get(Type(Subject))*)
-        } else {
-            if Type(Subject) == 'Prototype' {
-                Target := _GetTargetHelper(Subject.__Class)
+            if Desc.HasOwnProp('Value') {
+                Target.DefineProp(Prop, { Value: IsObject(Desc.Value) ? _ProcessValue(Desc.Value) : Desc.Value })
             } else {
-                obj := Subject.Base
-                while !obj.HasOwnProp('__Class') {
-                    obj := obj.Base
-                    if A_Index >= 15 ; Arbitrary limit to prevent infininite loop.
-                        throw Error('Failed to identify subject base type.', -1)
-                }
-                Target := _GetTargetHelper(obj.__Class)
+                Target.DefineProp(Prop, Desc)
             }
         }
-        try
-            ObjSetBase(Target, Subject.Base)
-        return Target
-        _GetTargetHelper(ClassString) {
-            try
-                return GetObjectFromString(ClassString)()
-            catch {
-                if Subject Is Map {
-                    return Map()
-                } else if Subject is Array {
-                    return Array()
+        if Target is Array {
+            Target.Length := Subject.Length
+            for item in Subject {
+                if IsSet(item) {
+                    Target[A_Index] := IsObject(item) ? _ProcessValue(item) : item
+                }
+            }
+        } else if Target is Map {
+            Target.Capacity := Subject.Capacity
+            for Key, Val in Subject {
+                if IsObject(Key) {
+                    Target.Set(_ProcessValue(Key), IsObject(Val) ? _ProcessValue(Val) : Val)
                 } else {
-                    return Object()
+                    Target.Set(Key, IsObject(Val) ? _ProcessValue(Val) : Val)
                 }
             }
         }
+        CurrentDepth--
+        return Target
+    }
+    _GetTarget1(Subject) {
+        try {
+            Target := GetObjectFromString(Subject.__Class)()
+        } catch {
+            if Subject Is Map {
+                Target := Map()
+            } else if Subject is Array {
+                Target := Array()
+            } else {
+                Target := Object()
+            }
+        }
+        try {
+            ObjSetBase(Target, Subject.Base)
+        }
+        return Target
+    }
+    _GetTarget2(Subject) {
+        if ConstructorParams.Has(Subject.__Class) {
+            Target := GetObjectFromString(Subject.__Class)(ConstructorParams.Get(Subject.__Class)*)
+        } else {
+            try {
+                Target := GetObjectFromString(Subject.__Class)()
+            } catch {
+                if Subject Is Map {
+                    Target := Map()
+                } else if Subject is Array {
+                    Target := Array()
+                } else {
+                    Target := Object()
+                }
+            }
+            try {
+                ObjSetBase(Target, Subject.Base)
+            }
+        }
+        return Target
     }
     _ProcessValue(Val) {
-        if Type(Val) == 'ComValue' || Type(Val) == 'ComObject'
+        if Type(Val) == 'ComValue' || Type(Val) == 'ComObject' {
             return Val
-        if IsObject(Val) {
-            if PtrList.Has(ObjPtr(Val))
-                return PtrList[ObjPtr(Val)]
-            if Depth == -1 || CurrentDepth < Depth {
-                PtrList.Set(ObjPtr(Val), _Target := _GetTarget(Val))
-                return _Recurse(_Target, Val)
-            } else
-                return Val
-        } else
+        }
+        if PtrList.Has(ObjPtr(Val)) {
+            return PtrList.Get(ObjPtr(Val))
+        }
+        if CurrentDepth == Depth {
             return Val
-    }
-}
-
-[/code]
-
-[color=#000000][size=135][b]GetObjectFromString.ahk[/b][/size][/color]
-[color=#000000][size=125]Contains the code for [c]GetObjectFromString[/c].[/size][/color]
-[code]
-
-/**
- * @description -
- * Use this function when you need to convert a string to an object reference, and the object
- * is nested within an object path. For example, we cannot get a reference to the class `Gui.Control`
- * by setting the string in double derefs like this: `obj := %'Gui.Control'%. Instead, we have to
- * traverse the path to get each object along the way, which is what this function does.
- * @param {String} Path - The object path.
- * @returns {*} - The object if it exists in the scope. Else, returns an empty string.
- * @example
-    class MyClass {
-        class MyNestedClass {
-            static MyStaticProp := {prop1_1: 1, prop1_2: {prop2_1: {prop3_1: 'Hello, World!'}}}
-        }
-    }
-    obj := GetObjectFromString('MyClass.MyNestedClass.MyStaticProp.prop1_2.prop2_1')
-    OutputDebug(obj.prop3_1) ; Hello, World!
- * @
- */
-GetObjectFromString(Path) {
-    Split := StrSplit(Path, '.')
-    if !IsSet(%Split[1]%)
-        return
-    OutObj := %Split[1]%
-    i := 1
-    while ++i <= Split.Length {
-        if !OutObj.HasOwnProp(Split[i])
-            return
-        OutObj := OutObj.%Split[i]%
-    }
-    return OutObj
-}
-
-[/code]
-
-[color=#000000][size=135][b]DeepClone-test.ahk[/b][/size][/color]
-[color=#000000][size=125]A test case that demonstrates the functionality of [c]DeepClone[/c].[/size][/color]
-[code]
-
-#Include Object.Prototype.DeepClone.ahk
-#Include GetObjectFromString.ahk
-/*
-    I just load this in a debugger and put a breakpoint on "sleep 1" to inspect it.
-*/
-class TestObject {
-    static Get(TestID) {
-        switch TestID {
-            case 1: return TestObject.A_Object
-        }
-    }
-    static A_Object := {
-        B1_Obj: {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
-      , B2_Map: Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
-      , B3_Array: [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
-    }
-    static A_Map := Map(
-        'B1_Obj', {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
-      , 'B2_Map', Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
-      , 'B3_Array', [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
-    )
-    static A_Array := [
-        {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
-      , Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
-      , [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
-    ]
-    static ErrorProp {
-        Get {
-            return this.__ErrorProp
-        }
-    }
-}
-; To demonstrate it successfully handles circular references.
-TestObject.A_Object.B1_Obj.C1_Obj.Example := TestObject.A_Object
-new := TestObject.DeepClone()
-; To demonstrate that the new object is, indeed, new.
-_RecurseDelete(TestObject)
-_RecurseDelete(Obj) {
-    list := []
-    for Prop in Obj.OwnProps() {
-        list.Push(Prop)
-    }
-    for Prop in list {
-        if Prop == 'Example'
-            continue
-        Desc := Obj.GetOwnPropDesc(Prop)
-        if Desc.HasOwnProp('Value') && IsObject(Desc.Value) {
-            _RecurseDelete(Desc.Value)
-        }
-        Obj.DeleteProp(Prop)
-    }
-}
-sleep 1
-
-[/code]
-
-[color=#000000][size=135][b]DeepCloneA-test.ahk[/b][/size][/color]
-[color=#000000][size=125]A test case that demonstrates the functionality of [c]DeepCloneA[/c].[/size][/color]
-[code]
-
-#Include Object.Prototype.DeepCloneA.ahk
-#Include GetObjectFromString.ahk
-/*
-    I just load this in a debugger and put a breakpoint on "sleep 1" to inspect it.
-*/
-class TestObject {
-    __New(Param1, Param2, Param3?, ParamWithDefault := 4) {
-        this.Param1 := Param1
-        this.Param2 := Param2
-        if IsSet(Param3) {
-            this.Param3 := Param3
-            this.DefineProp('Method3', { Call: (*) => 3 })
         } else {
-            this.DefineProp('Method3_b', { Call: (*) => '3-b' })
-        }
-        this.ParamWithDefault := ParamWithDefault
-    }
-    Get(TestID) {
-        switch TestID {
-            case 1: return TestObject.A_Object
+            PtrList.Set(ObjPtr(Val), _Target := GetTarget(Val))
+            return _Recurse(_Target, Val)
         }
     }
-    A_Object := {
-        B1_Obj: {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
-      , B2_Map: Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
-      , B3_Array: [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
-    }
-    A_Map := Map(
-        'B1_Obj', {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
-      , 'B2_Map', Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
-      , 'B3_Array', [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
-    )
-    A_Array := [
-        {C1_Obj: {D1_Prop: 'Val'}, C1_Map: Map('D1_Item', 'Val'), C1_Array: ['Val']}
-      , Map('C2_Obj', {D2_Prop: 'Val'}, 'C2_Map', Map('D2_Item', 'Val'), 'C2_Array', ['Val'])
-      , [{D3_Prop: 'Val'}, Map('D3_Item', 'Val'), ['Val']]
-    ]
-    ErrorProp {
-        Get {
-            return this.__ErrorProp
+
+    /**
+     * @description -
+     * Use this function when you need to convert a string to an object reference, and the object
+     * is nested within an object path. For example, we cannot get a reference to the class `Gui.Control`
+     * by setting the string in double derefs like this: `obj := %'Gui.Control'%. Instead, we have to
+     * traverse the path to get each object along the way, which is what this function does.
+     * @param {String} Path - The object path.
+     * @returns {*} - The object if it exists in the scope. Else, returns an empty string.
+     * @example
+     *  class MyClass {
+     *      class MyNestedClass {
+     *          static MyStaticProp := {prop1_1: 1, prop1_2: {prop2_1: {prop3_1: 'Hello, World!'}}}
+     *      }
+     *  }
+     *  obj := GetObjectFromString('MyClass.MyNestedClass.MyStaticProp.prop1_2.prop2_1')
+     *  OutputDebug(obj.prop3_1) ; Hello, World!
+     * @
+     */
+    GetObjectFromString(Path) {
+        Split := StrSplit(Path, '.')
+        if !IsSet(%Split[1]%)
+            return
+        OutObj := %Split[1]%
+        i := 1
+        while ++i <= Split.Length {
+            if !OutObj.HasOwnProp(Split[i])
+                return
+            OutObj := OutObj.%Split[i]%
         }
+        return OutObj
     }
 }
-instance := TestObject(1, 2, 3, 4)
-; To demonstrate it successfully handles circular references.
-instance.A_Object.B1_Obj.C1_Obj.Example := instance.A_Object
-ConstructorParams := Map(Type(instance), [5, 6, , 8])
-new := instance.DeepCloneA(ConstructorParams)
-; To demonstrate that the new object is, indeed, new.
-_RecurseDelete(instance)
-_RecurseDelete(Obj) {
-    list := []
-    for Prop in Obj.OwnProps() {
-        list.Push(Prop)
-    }
-    for Prop in list {
-        if Prop == 'Example'
-            continue
-        Desc := Obj.GetOwnPropDesc(Prop)
-        if Desc.HasOwnProp('Value') && IsObject(Desc.Value) {
-            _RecurseDelete(Desc.Value)
-        }
-        Obj.DeleteProp(Prop)
-    }
-}
-sleep 1
 
 [/code]
+
 
 [color=#800000][size=165]Changelog[/size][/color]
-[color=#000000][size=120][b]2025-02-13[/b][/size][/color]
-[list][*][color=#000000][size=125]Added [c]if Subject.Has(n)[/c] conditional to Array block.[/size][/color][/list]
+[size=120][b]2025-06-09[/b][/size]
+[b]Breaking[/b]
+[list][*]Renamed "Object.Prototype.DeepClone.ahk" to "ObjDeepClone.ahk".
+[*]Renamed [c]OBJECT_DEEPCLONE[/c] to [c]ObjDeepClone[/c].
+[*]Removed [c]DeepCloneA[/c]. Its functionality is consolidated in [c]ObjDeepClone[/c].
+[*]Changed the default value of [c]Depth[/c] to 0.
+[*]Removed dependency [c]GetObjectFromString[/c] and placed the function as a nested function in [c]ObjDeepClone[/c].
+[*]Cleaned up code.
+[*]Adjusted wording in function description.
+[*]Expanded the "Limitations" section of the documentation.
+[*]Cleaned up documentation.[/list]
 
-[color=#000000][size=120][b]2025-02-13[/b][/size][/color]
-[list][*][color=#000000][size=125]Refactored the function loop.[/size][/color]
-[*][color=#000000][size=125]Removed long comment about __Enum.[/size][/color]
-[*][color=#000000][size=125]Clarified DeepCloneA description.[/size][/color]
-[*][color=#000000][size=125]Removed unnecessary parameters within _Recurse function statement.[/size][/color]
-[*][color=#000000][size=125]Added [c]Target.Capacity := Subject.Capacity[/c] for both Array and Map blocks.[/size][/color][/list]
+[size=120][b]2025-02-13[/b][/size]
+[list][*]Added [c]if Subject.Has(n)[/c] conditional to Array block.[/list]
 
-[color=#000000][size=120][b]2025-02-11[/b][/size][/color]
-[list][*][color=#000000][size=125]Fixed a logical error that would cause cloning an array to terminate early when encountering an unset index.[/size][/color][/list]
+[size=120][b]2025-02-13[/b][/size]
+[list][*]Refactored the function loop.
+[*]Removed long comment about __Enum.
+[*]Clarified DeepCloneEx description.
+[*]Removed unnecessary parameters within _Recurse function statement.
+[*]Added [c]Target.Capacity := Subject.Capacity[/c] for both Array and Map blocks.[/list]
 
-[color=#000000][size=120][b]2025-02-08[/b][/size][/color]
-[list][*][color=#000000][size=125]Uploaded library[/size][/color]
-[*][color=#000000][size=125]A bit later, wrote DeepCloneA and added it. Also separated [c]GetObjectFromString[/c] into its own file.[/size][/color][/list]
+[size=120][b]2025-02-11[/b][/size]
+[list][*]Fixed a logical error that would cause cloning an array to terminate early when encountering an unset index.[/list]
+
+[size=120][b]2025-02-08[/b][/size]
+[list][*]Uploaded library
+[*]A bit later, wrote DeepCloneEx and added it. Also separated [c]GetObjectFromString[/c] into its own file.[/list]
 
