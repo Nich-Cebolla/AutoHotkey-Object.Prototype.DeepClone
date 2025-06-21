@@ -17,7 +17,7 @@ Object.Prototype.DefineProp('DeepClone', { Call: ObjDeepClone })
 ObjDeepClone(Self, ConstructorParams?, Depth := 0) {
     GetTarget := IsSet(ConstructorParams) ? _GetTarget2 : _GetTarget1
     PtrList := Map(ObjPtr(Self), Result := GetTarget(Self))
-    CurrentDepth := 1
+    CurrentDepth := 0
     return _Recurse(Result, Self)
 
     _Recurse(Target, Subject) {

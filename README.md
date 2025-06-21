@@ -29,6 +29,9 @@ are set on the new object instead of attempting to clone them.
 
 ## Changelog
 
+2025-06-21
+- Fixed the initial depth.
+
 2025-06-09
 **Breaking**
 - Renamed "Object.Prototype.DeepClone.ahk" to "ObjDeepClone.ahk".
